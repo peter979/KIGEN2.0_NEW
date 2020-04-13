@@ -1,0 +1,1 @@
+<img src="<? print str_replace(' ', '', scai_get_name("url_logo","parametros","nombre","valor")); ?>" border="0" width="198" height="60" />

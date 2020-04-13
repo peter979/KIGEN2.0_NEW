@@ -1,0 +1,121 @@
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<td height="20" class="tittabla" colspan="2" align="center">COTIZACIONES: <? print "$_GET[filtro13] - $_GET[filtro14]";?></td>
+			
+				</tr>
+				<tr>
+					<td width="50%" height="20" align="center" class="contenidotab">
+			<?			
+			if ($_GET['filtro13'] && $_GET['filtro14'] && $_GET['filtro13']!="N" && $_GET['filtro14']!="N")
+			{
+				function ultimo_dia2($m,$y)
+				{
+						return strftime("%d", mktime(0, 0, 0, $m+1, 0, $y));
+				}
+				
+				$explode_uno=explode("-",$_GET['filtro13']);
+				
+				$explode_dos=explode("-",$_GET['filtro14']);
+				
+				$cant=($explode_dos[1]-$explode_uno[1]);
+				//print "es ".$cant;
+				
+				for($m=0;$m<=$cant;$m++)
+				{
+				$mes_temp=$explode_uno[1]+$m;
+				
+				if($mes_temp<10)
+					$mes_temp="0".$mes_temp;
+				
+				
+				$inicios[]="2010-".$mes_temp."-01";
+				
+				$ultimodia = ultimo_dia2($mes_temp,$explode_uno[0]);
+				$finales[]="2010-$mes_temp-".$ultimodia;
+				
+				}
+				$datas="";
+				$tot=0;
+				for($g=0;$g<count($inicios);$g++)
+				{
+				
+				$sqles = "select count(*) son from cot_temp where fecha_hora between '$inicios[$g]' and '$finales[$g]'";
+				
+				if ($_GET['filtro1']!='' && $_GET['filtro1']!='N')
+					$sqles .= " AND  clasificacion='$_GET[filtro1]'";
+				if ($_GET['filtro2']!='')
+					$sqles .= " AND idcliente in (select idcliente from clientes where nombre like '%$_GET[filtro2]%')";
+				if ($_GET['filtro3']!='' && $_GET['filtro3']!='N')
+					$sqles .= " AND idusuario='$_GET[filtro3]'";
+					//$sqles .= " AND idusuario in (select idusuario from usuarios where nombre like '%$_GET[filtro3]%')";
+				
+				if ($_GET['filtro4'] && $_GET['filtro4b'] && $_GET['filtro4']!="N" && $_GET['filtro4b']!="N")
+					$sqles .= " AND vigencia BETWEEN '$_GET[filtro4]' AND '$_GET[filtro4b] '";
+				
+				if ($_GET['filtro5']=='1')
+					$sqles .= " AND idcot_temp in (select idcot_temp from cot_otm)";
+				if ($_GET['filtro6']=='1')
+					$sqles .= " AND idcot_temp in (select idcot_temp from cot_seg)";
+				if ($_GET['filtro7']=='1')
+					$sqles .= " AND idcot_temp in (select idcot_temp from cot_adu)";			
+				if ($_GET['filtro5']=='0')
+					$sqles .= " AND idcot_temp not in (select idcot_temp from cot_otm)";
+				if ($_GET['filtro6']=='0')
+					$sqles .= " AND idcot_temp not in (select idcot_temp from cot_seg)";
+				if ($_GET['filtro7']=='0')
+					$sqles .= " AND idcot_temp not in (select idcot_temp from cot_adu)";
+				if ($_GET['filtro8']!='')
+					$sqles .= " AND numero like '%$_GET[filtro8]%'";
+				if ($_GET['filtro9']!='' && $_GET['filtro9']!='N')
+					$sqles .= " AND  estado='$_GET[filtro9]'";
+				if ($_GET['filtro10']!='' && $_GET['filtro10']!='N')
+					$sqles .= " AND  resultado='$_GET[filtro10]'";
+				
+				if ($_GET['filtro11']!='' && $_GET['filtro11']!='N')
+					$sqles .= " AND idcot_temp in (select idcot_temp from cot_fletes where idtarifario in (select idtarifario from tarifario where puerto_origen='$_GET[filtro11]'))";
+				if ($_GET['filtro12']!='' && $_GET['filtro12']!='N')
+					$sqles .= " AND idcot_temp in (select idcot_temp from cot_fletes where idtarifario in (select idtarifario from tarifario where puerto_destino='$_GET[filtro12]'))";
+					
+				$sqles .= " order by fecha_hora desc";
+				
+				//print $sqles.'<br>';
+				
+				$exe_sqlbu=mysql_query($sqles, $link);
+				$bur=mysql_fetch_array($exe_sqlbu);
+				//print "<br>$inicios[$g] - $finales[$g] : ".$bur['son'];
+				
+				$datas.=$bur['son'].",";
+				$conven[]=$bur['son'];
+				$tot+=$bur['son'];
+				//print "<br>$lin";
+				
+				}
+				$datas=substr($datas,0,strlen($datas)-1);
+				
+				?>		
+						
+                <img src="graph/graphbarras.php?dat=<? print $datas;?>&bkg=FFFFFF&wdt=190&hgt=140" />
+                <br /><br />
+                <?
+                $muev="2";
+                for($g=0;$g<count($inicios);$g++)
+                {
+                ?>
+                    <img src="graph/graphref.php?ref=<? print $muev+=3;?>&typ=1&dim=5&bkg=FFFFFF" />&nbsp;<? print "$inicios[$g] - $finales[$g]: $conven[$g]<br>";?>
+                <?
+                }
+                ?>
+                <br>
+                Total:  <? print $tot;?>
+                <?
+			}
+			else
+			{
+				print 'Por favor selecciona el rango de fecha y pulsa el bot&oacute;n buscar';
+			}
+			?>
+					
+					</td>
+				</tr>
+			</table>
+            
